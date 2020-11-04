@@ -1,5 +1,5 @@
 import { sleep, check, group } from 'k6';
-import { createClient, createBasicAuthClient } from './modules/client.js';
+import { createClient, createBasicAuthClient, createBearerAuthClient } from './modules/client.js';
 import { createTestOrgIfNotExists, createTestdataDatasourceIfNotExists } from './modules/util.js';
 
 export let options = {
@@ -7,22 +7,50 @@ export let options = {
 };
 
 let endpoint = __ENV.URL || 'http://localhost:3000';
-const client = createClient(endpoint);
 
-export const setup = () => {
-  const basicAuthClient = createBasicAuthClient(endpoint, 'admin', 'admin');
-  const orgId = createTestOrgIfNotExists(basicAuthClient);
-  const datasourceId = createTestdataDatasourceIfNotExists(basicAuthClient);
-  client.withOrgId(orgId);
+let token = __ENV.TOKEN;
+
+export function setup() {
+
+  let authClient
+  if (token) {
+    console.log('using token');
+    authClient = createBearerAuthClient(endpoint, token);
+  } else {
+    console.log('not using token');
+    authClient = createBasicAuthClient(endpoint, 'admin', 'admin');
+  }
+
+  const orgId = createTestOrgIfNotExists(authClient);
+  const datasourceId = createTestdataDatasourceIfNotExists(authClient);
+
   return {
-    orgId: orgId,
-    datasourceId: datasourceId,
+    orgId,
+    datasourceId,
   };
 };
 
+
 export default data => {
   group('user auth token test', () => {
-    if (__ITER === 0) {
+
+    // Need to create this here - changes made in setup are not persisted to default.
+    let client;
+    if (token) {
+      console.log('recreating client with token');
+      client = createBearerAuthClient(endpoint, token);
+    } else {
+      client = createClient(endpoint);
+    }
+    client.withOrgId(data.orgId);
+    
+    console.log(`Start of test: ${client.raw.token}`);
+    console.log(`client org id: ${client.orgId}`);
+    console.log(`client raw url: ${client.raw.url}`);
+    console.log(`${token}`);
+
+
+    if (__ITER === 0 && !token) {
       group('user authenticates through ui with username and password', () => {
         let res = client.ui.login('admin', 'admin');
 
@@ -60,6 +88,8 @@ export default data => {
 
         let responses = client.batch(requests);
         for (let n = 0; n < batchCount; n++) {
+          console.log(`Response status is ${responses[n].status}`);
+          console.log(responses[n].body)
           check(responses[n], {
             'response status is 200': r => r.status === 200,
           });
