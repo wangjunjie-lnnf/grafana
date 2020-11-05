@@ -7,17 +7,14 @@ export let options = {
 };
 
 let endpoint = __ENV.URL || 'http://localhost:3000';
-
 let token = __ENV.TOKEN;
 
-export function setup() {
+export const setup = () => {
 
   let authClient
   if (token) {
-    console.log('using token');
     authClient = createBearerAuthClient(endpoint, token);
   } else {
-    console.log('not using token');
     authClient = createBasicAuthClient(endpoint, 'admin', 'admin');
   }
 
@@ -28,6 +25,7 @@ export function setup() {
     orgId,
     datasourceId,
   };
+
 };
 
 
@@ -37,18 +35,11 @@ export default data => {
     // Need to create this here - changes made in setup are not persisted to default.
     let client;
     if (token) {
-      console.log('recreating client with token');
       client = createBearerAuthClient(endpoint, token);
     } else {
       client = createClient(endpoint);
     }
     client.withOrgId(data.orgId);
-    
-    console.log(`Start of test: ${client.raw.token}`);
-    console.log(`client org id: ${client.orgId}`);
-    console.log(`client raw url: ${client.raw.url}`);
-    console.log(`${token}`);
-
 
     if (__ITER === 0 && !token) {
       group('user authenticates through ui with username and password', () => {
@@ -88,8 +79,6 @@ export default data => {
 
         let responses = client.batch(requests);
         for (let n = 0; n < batchCount; n++) {
-          console.log(`Response status is ${responses[n].status}`);
-          console.log(responses[n].body)
           check(responses[n], {
             'response status is 200': r => r.status === 200,
           });

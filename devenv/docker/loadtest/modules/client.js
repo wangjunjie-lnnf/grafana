@@ -63,15 +63,12 @@ export const GrafanaClient = class GrafanaClient {
   constructor(httpClient) {
     httpClient.onBeforeRequest = this.onBeforeRequest;
     this.raw = httpClient;
-    console.log(`GC constructor token: ${this.raw.token}`);
     this.ui = new UIEndpoint(httpClient);
     this.orgs = new OrganizationsEndpoint(httpClient.withUrl('/api'));
     this.datasources = new DatasourcesEndpoint(httpClient.withUrl('/api'));
   }
 
   batch(requests) {
-    console.log('GC batch')
-    console.log(`GC token: ${this.raw.token}`);
     return this.raw.batch(requests);
   }
 
@@ -107,9 +104,7 @@ export const BaseClient = class BaseClient {
     return c;
   }
 
-  beforeRequest(params) {
-    console.log('raw before Request');
-  }
+  beforeRequest(params) {}
 
   get(url, params) {
     params = params || {};
@@ -143,16 +138,13 @@ export const BaseClient = class BaseClient {
   }
 
   batch(requests) {
-    console.log('raw batch');
     for (let n = 0; n < requests.length; n++) {
       let params = requests[n].params || {};
       params.headers = params.headers || {};
       params.headers['Content-Type'] = 'application/json';
       params.timeout = 120000;
       this.beforeRequest(params);
-      console.log(`1. batch params auth header: ${params.headers['Authorization']}`);
       this.onBeforeRequest(params);
-      console.log(`2. batch params auth header: ${params.headers['Authorization']}`);
       requests[n].params = params;
       requests[n].url = this.url + requests[n].url;
       if (requests[n].body) {
@@ -200,11 +192,9 @@ export class BearerAuthClient extends BaseClient {
   }
 
   beforeRequest(params) {
-    console.log('Adding bearer token');
     params = params || {};
     params.headers = params.headers || {};
     params.headers['Authorization']  = `Bearer ${this.token}`;
-    console.log(params.headers['Authorization']);
   }
 }
 
