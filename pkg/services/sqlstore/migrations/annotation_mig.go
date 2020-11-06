@@ -154,7 +154,7 @@ type AddMakeRegionSingleRowMigration struct {
 	MigrationBase
 }
 
-func (m *AddMakeRegionSingleRowMigration) Sql(dialect Dialect) string {
+func (m *AddMakeRegionSingleRowMigration) SQL(dialect Dialect) string {
 	return "code migration"
 }
 

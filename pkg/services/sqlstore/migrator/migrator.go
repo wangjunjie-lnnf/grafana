@@ -87,7 +87,7 @@ func (mg *Migrator) Start() error {
 			continue
 		}
 
-		sql := m.Sql(mg.Dialect)
+		sql := m.SQL(mg.Dialect)
 
 		record := MigrationLog{
 			MigrationId: m.Id(),
@@ -122,7 +122,7 @@ func (mg *Migrator) exec(m Migration, sess *xorm.Session) error {
 
 	condition := m.GetCondition()
 	if condition != nil {
-		sql, args := condition.Sql(mg.Dialect)
+		sql, args := condition.SQL(mg.Dialect)
 
 		if sql != "" {
 			mg.Logger.Debug("Executing migration condition sql", "id", m.Id(), "sql", sql, "args", args)
@@ -144,7 +144,7 @@ func (mg *Migrator) exec(m Migration, sess *xorm.Session) error {
 		mg.Logger.Debug("Executing code migration", "id", m.Id())
 		err = codeMigration.Exec(sess, mg)
 	} else {
-		sql := m.Sql(mg.Dialect)
+		sql := m.SQL(mg.Dialect)
 		mg.Logger.Debug("Executing sql migration", "id", m.Id(), "sql", sql)
 		_, err = sess.Exec(sql)
 	}

@@ -22,9 +22,9 @@ type Dialect interface {
 	BooleanStr(bool) string
 	DateTimeFunc(string) string
 
-	CreateIndexSql(tableName string, index *Index) string
-	CreateTableSql(table *Table) string
-	AddColumnSql(tableName string, col *Column) string
+	CreateIndexSQL(tableName string, index *Index) string
+	CreateTableSQL(table *Table) string
+	AddColumnSQL(tableName string, col *Column) string
 	CopyTableData(sourceTable string, targetTable string, sourceCols []string, targetCols []string) string
 	DropTable(tableName string) string
 	DropIndexSql(tableName string, index *Index) string
@@ -56,12 +56,12 @@ type Dialect interface {
 type dialectFunc func(*xorm.Engine) Dialect
 
 var supportedDialects = map[string]dialectFunc{
-	MYSQL:                  NewMysqlDialect,
-	SQLITE:                 NewSqlite3Dialect,
-	POSTGRES:               NewPostgresDialect,
-	MYSQL + "WithHooks":    NewMysqlDialect,
-	SQLITE + "WithHooks":   NewSqlite3Dialect,
-	POSTGRES + "WithHooks": NewPostgresDialect,
+	MySQL:                  NewMysqlDialect,
+	SQLite:                 NewSqlite3Dialect,
+	Postgres:               NewPostgresDialect,
+	MySQL + "WithHooks":    NewMysqlDialect,
+	SQLite + "WithHooks":   NewSqlite3Dialect,
+	Postgres + "WithHooks": NewPostgresDialect,
 }
 
 func NewDialect(engine *xorm.Engine) Dialect {
@@ -111,7 +111,7 @@ func (b *BaseDialect) DateTimeFunc(value string) string {
 	return value
 }
 
-func (b *BaseDialect) CreateTableSql(table *Table) string {
+func (b *BaseDialect) CreateTableSQL(table *Table) string {
 	sql := "CREATE TABLE IF NOT EXISTS "
 	sql += b.dialect.Quote(table.Name) + " (\n"
 
@@ -145,11 +145,11 @@ func (b *BaseDialect) CreateTableSql(table *Table) string {
 	return sql
 }
 
-func (b *BaseDialect) AddColumnSql(tableName string, col *Column) string {
+func (b *BaseDialect) AddColumnSQL(tableName string, col *Column) string {
 	return fmt.Sprintf("alter table %s ADD COLUMN %s", b.dialect.Quote(tableName), col.StringNoPk(b.dialect))
 }
 
-func (b *BaseDialect) CreateIndexSql(tableName string, index *Index) string {
+func (b *BaseDialect) CreateIndexSQL(tableName string, index *Index) string {
 	quote := b.dialect.Quote
 	var unique string
 	if index.Type == UniqueIndex {

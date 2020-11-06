@@ -177,7 +177,7 @@ func (ss *SqlStore) buildConnectionString() (string, error) {
 	}
 
 	switch ss.dbCfg.Type {
-	case migrator.MYSQL:
+	case migrator.MySQL:
 		protocol := "tcp"
 		if strings.HasPrefix(ss.dbCfg.Host, "/") {
 			protocol = "unix"
@@ -199,7 +199,7 @@ func (ss *SqlStore) buildConnectionString() (string, error) {
 		}
 
 		cnnstr += ss.buildExtraConnectionString('&')
-	case migrator.POSTGRES:
+	case migrator.Postgres:
 		addr, err := util.SplitHostPortDefault(ss.dbCfg.Host, "127.0.0.1", "5432")
 		if err != nil {
 			return "", errutil.Wrapf(err, "Invalid host specifier '%s'", ss.dbCfg.Host)
@@ -214,7 +214,7 @@ func (ss *SqlStore) buildConnectionString() (string, error) {
 		cnnstr = fmt.Sprintf("user=%s password=%s host=%s port=%s dbname=%s sslmode=%s sslcert=%s sslkey=%s sslrootcert=%s", ss.dbCfg.User, ss.dbCfg.Pwd, addr.Host, addr.Port, ss.dbCfg.Name, ss.dbCfg.SslMode, ss.dbCfg.ClientCertPath, ss.dbCfg.ClientKeyPath, ss.dbCfg.CaCertPath)
 
 		cnnstr += ss.buildExtraConnectionString(' ')
-	case migrator.SQLITE:
+	case migrator.SQLite:
 		// special case for tests
 		if !filepath.IsAbs(ss.dbCfg.Path) {
 			ss.dbCfg.Path = filepath.Join(ss.Cfg.DataPath, ss.dbCfg.Path)
@@ -239,7 +239,7 @@ func (ss *SqlStore) getEngine() (*xorm.Engine, error) {
 	}
 
 	sqlog.Info("Connecting to DB", "dbtype", ss.dbCfg.Type)
-	if ss.dbCfg.Type == migrator.SQLITE && strings.HasPrefix(connectionString, "file:") {
+	if ss.dbCfg.Type == migrator.SQLite && strings.HasPrefix(connectionString, "file:") {
 		exists, err := fs.Exists(ss.dbCfg.Path)
 		if err != nil {
 			return nil, errutil.Wrapf(err, "can't check for existence of %q", ss.dbCfg.Path)
@@ -351,7 +351,7 @@ func InitTestDB(t ITestDB) *SqlStore {
 		testSqlStore.CacheService = localcache.New(5*time.Minute, 10*time.Minute)
 		testSqlStore.skipEnsureDefaultOrgAndUser = true
 
-		dbType := migrator.SQLITE
+		dbType := migrator.SQLite
 
 		// environment variable present for test db?
 		if db, present := os.LookupEnv("GRAFANA_TEST_DB"); present {
@@ -418,7 +418,7 @@ func InitTestDB(t ITestDB) *SqlStore {
 
 func IsTestDbMySql() bool {
 	if db, present := os.LookupEnv("GRAFANA_TEST_DB"); present {
-		return db == migrator.MYSQL
+		return db == migrator.MySQL
 	}
 
 	return false
@@ -426,7 +426,7 @@ func IsTestDbMySql() bool {
 
 func IsTestDbPostgres() bool {
 	if db, present := os.LookupEnv("GRAFANA_TEST_DB"); present {
-		return db == migrator.POSTGRES
+		return db == migrator.Postgres
 	}
 
 	return false

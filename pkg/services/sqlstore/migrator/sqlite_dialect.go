@@ -16,7 +16,7 @@ func NewSqlite3Dialect(engine *xorm.Engine) Dialect {
 	d := Sqlite3{}
 	d.BaseDialect.dialect = &d
 	d.BaseDialect.engine = engine
-	d.BaseDialect.driverName = SQLITE
+	d.BaseDialect.driverName = SQLite
 	return &d
 }
 
